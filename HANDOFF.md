@@ -62,4 +62,4 @@ Full design: [PLAN.md](./PLAN.md). Per-module notes in `src/`.
 
 ## Repo URL
 
-(To be set when GitHub push completes.)
+https://github.com/kormco/agent404-server
