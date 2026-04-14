@@ -111,6 +111,12 @@
 
   if (!auto || !url || !seconds) return;
 
+  // JS will drive the navigation — remove the meta refresh so the two don't
+  // race at T=seconds. Meta refresh stays in place as a no-JS fallback for
+  // bots/text-mode browsers; here we yank it now that we know JS is live.
+  var metaTag = document.querySelector('meta[http-equiv="refresh"]');
+  if (metaTag) metaTag.parentNode.removeChild(metaTag);
+
   document.getElementById("redirect-block").style.display = "block";
   var countEl = document.getElementById("count");
   var cancelBtn = document.getElementById("cancel-btn");
