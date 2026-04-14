@@ -56,6 +56,13 @@ function levenshtein(a: string, b: string): number {
   return prev[n]!;
 }
 
+function commonPrefixLength(a: string, b: string): number {
+  const n = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < n && a[i] === b[i]) i++;
+  return i;
+}
+
 function similarity(a: string, b: string): number {
   const maxLen = Math.max(a.length, b.length);
   if (maxLen === 0) return 1;
@@ -118,9 +125,32 @@ export function findMatches(requestPath: string, index: ContentIndex): MatchResu
   if (tokens.length > 0) {
     const hits = new Map<string, number>();
     for (const t of tokens) {
-      const entries = index.keywordIndex.get(t) ?? [];
-      for (const e of entries) {
-        hits.set(e.path, (hits.get(e.path) ?? 0) + 1);
+      // Exact hit: full credit.
+      const exact = index.keywordIndex.get(t);
+      if (exact) {
+        for (const e of exact) {
+          hits.set(e.path, (hits.get(e.path) ?? 0) + 1);
+        }
+        continue;
+      }
+      // Prefix fallback: "/type" should partial-match "typing", "auth" should
+      // match "authentication", etc. Match on shared prefix length — covers
+      // short-vs-inflected-form pairs (type/typing) that neither one prefixes
+      // the other. Credit at 0.6x to stay below exact-match confidence.
+      const seen = new Set<string>();
+      for (const [kw, entries] of index.keywordIndex) {
+        if (kw === t) continue;
+        const shared = commonPrefixLength(t, kw);
+        if (shared < 3) continue;
+        // Require the shared prefix to cover at least half of the shorter
+        // word — rejects incidental 3-char collisions like "int" vs "integer"
+        // against "internet".
+        if (shared < Math.min(t.length, kw.length) * 0.5) continue;
+        for (const e of entries) {
+          if (seen.has(e.path)) continue;
+          seen.add(e.path);
+          hits.set(e.path, (hits.get(e.path) ?? 0) + 0.6);
+        }
       }
     }
     for (const [path, count] of hits) {

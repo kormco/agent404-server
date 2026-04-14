@@ -123,14 +123,30 @@
   var cancelled = false;
   var timeoutId, intervalId;
 
-  cancelBtn.addEventListener("click", function () {
+  function stopTimers() {
     cancelled = true;
     clearTimeout(timeoutId);
     clearInterval(intervalId);
+  }
+
+  cancelBtn.addEventListener("click", function () {
+    stopTimers();
     var meta = document.querySelector('meta[http-equiv="refresh"]');
     if (meta) meta.parentNode.removeChild(meta);
     document.getElementById("redirect-block").style.display = "none";
   });
+
+  // Kill the auto-redirect timer the moment the user clicks any link. If we
+  // don't, setTimeout can fire mid-navigation and reassign window.location,
+  // aborting the click-nav and leaving the target page in a half-loaded
+  // state (blank page in Chrome + Next.js static exports).
+  document.addEventListener("click", function (e) {
+    var t = e.target;
+    if (t && t.closest && t.closest("a")) stopTimers();
+  }, true);
+
+  // Safety net for non-click navigations (back/forward, form submit, etc.).
+  window.addEventListener("pagehide", stopTimers, { once: true });
 
   intervalId = setInterval(function () {
     if (cancelled) return;
