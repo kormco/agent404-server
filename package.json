@@ -1,0 +1,30 @@
+{
+  "name": "agent404-server",
+  "version": "0.1.0",
+  "description": "Server-side reverse-proxy 404 handler with HTTP-native intelligent responses for AI agents and humans",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "404",
+    "agent",
+    "ai",
+    "reverse-proxy",
+    "nginx",
+    "content-negotiation",
+    "smart-redirect"
+  ],
+  "author": "Evan Kormos",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

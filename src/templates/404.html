@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{HEADING}}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{{META_REFRESH}}
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #0a0e1a;
+    color: #e8eaf0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    padding: 2rem;
+  }
+  .card {
+    max-width: 560px;
+    width: 100%;
+    background: #131826;
+    border: 1px solid #1f2638;
+    border-radius: 12px;
+    padding: 2.5rem;
+  }
+  h1 { margin: 0 0 1rem; font-size: 1.75rem; font-weight: 600; }
+  .requested {
+    font-family: ui-monospace, Menlo, Monaco, "Courier New", monospace;
+    color: #8b95b1;
+    background: #0a0e1a;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    word-break: break-all;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+  .redirect-target {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #0a0e1a;
+    border-radius: 8px;
+    border: 1px solid #2a3552;
+  }
+  .redirect-target a {
+    color: #7aa8ff;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+  }
+  .redirect-target a:hover { text-decoration: underline; }
+  .countdown {
+    color: #8b95b1;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+  .countdown #count { color: #e8eaf0; font-weight: 600; }
+  .cancel {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: #8b95b1;
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: 0.85rem;
+    background: none;
+    border: none;
+    padding: 0;
+  }
+  .cancel:hover { color: #e8eaf0; }
+  .suggestions { margin-top: 1.5rem; }
+  .suggestions p { margin: 0 0 0.5rem; color: #8b95b1; font-size: 0.9rem; }
+  .suggestions ul { list-style: none; padding: 0; margin: 0; }
+  .suggestions li { padding: 0.5rem 0; border-bottom: 1px solid #1f2638; }
+  .suggestions li:last-child { border-bottom: none; }
+  .suggestions a { color: #7aa8ff; text-decoration: none; }
+  .suggestions a:hover { text-decoration: underline; }
+  .hint { color: #5a6480; font-size: 0.8rem; margin-left: 0.5rem; }
+  .home {
+    display: inline-block;
+    margin-top: 1.5rem;
+    color: #7aa8ff;
+    text-decoration: none;
+    font-size: 0.9rem;
+  }
+  .home:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<main class="card">
+  <h1>{{HEADING}}</h1>
+  <div class="requested">{{ORIGINAL_PATH}}</div>
+
+  <div class="redirect-target" id="redirect-block" style="display:none">
+    <a id="redirect-link" href="{{REDIRECT_URL}}">{{REDIRECT_TITLE}}</a>
+    <div class="countdown">Redirecting in <span id="count">{{TIMER_SECONDS}}</span>s — <button class="cancel" id="cancel-btn">cancel</button></div>
+  </div>
+
+  {{SUGGESTIONS_HTML}}
+
+  <a class="home" href="/">← Back to home</a>
+</main>
+
+<script>
+(function () {
+  var auto = "{{AUTO_REDIRECT}}" === "true";
+  var url = "{{REDIRECT_URL}}";
+  var seconds = parseInt("{{TIMER_SECONDS}}", 10) || 0;
+
+  if (!auto || !url || !seconds) return;
+
+  document.getElementById("redirect-block").style.display = "block";
+  var countEl = document.getElementById("count");
+  var cancelBtn = document.getElementById("cancel-btn");
+  var cancelled = false;
+  var timeoutId, intervalId;
+
+  cancelBtn.addEventListener("click", function () {
+    cancelled = true;
+    clearTimeout(timeoutId);
+    clearInterval(intervalId);
+    var meta = document.querySelector('meta[http-equiv="refresh"]');
+    if (meta) meta.parentNode.removeChild(meta);
+    document.getElementById("redirect-block").style.display = "none";
+  });
+
+  intervalId = setInterval(function () {
+    if (cancelled) return;
+    seconds -= 1;
+    if (seconds <= 0) {
+      clearInterval(intervalId);
+      countEl.textContent = "0";
+    } else {
+      countEl.textContent = String(seconds);
+    }
+  }, 1000);
+
+  timeoutId = setTimeout(function () {
+    if (!cancelled) window.location.href = url;
+  }, parseInt("{{TIMER_SECONDS}}", 10) * 1000);
+})();
+</script>
+</body>
+</html>
